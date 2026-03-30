@@ -3,11 +3,13 @@ import { IProduct } from '../../types';
 export class Basket {
   private items: IProduct[] = [];
 
-  add(item: IProduct): void {
-    // Проверяем, что товара ещё нет в корзине
-    if (!this.hasItem(item.id)) {
-      this.items.push({ ...item }); // Добавляем копию объекта товара
+  add(item: IProduct): boolean {
+    // Проверяем, что товара ещё нет в корзине и у него есть цена
+    if (!this.hasItem(item.id) && item.price !== null) {
+      this.items.push({ ...item });
+      return true; // Успешно добавлен
     }
+    return false; // Не добавлен (уже есть или нет цены)
   }
 
   remove(id: string): void {
@@ -19,7 +21,7 @@ export class Basket {
   }
 
   getItems(): IProduct[] {
-    return [...this.items]; // Возвращаем копию массива товаров
+    return [...this.items];
   }
 
   getTotal(): number {
