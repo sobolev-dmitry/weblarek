@@ -1,5 +1,4 @@
 import { IApi, IApiResponse, IProduct, IOrder, IOrderResult } from '../types';
-import { API_URL } from '../utils/constants';
 
 export class ShopApi {
   private api: IApi;
