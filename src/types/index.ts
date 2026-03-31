@@ -29,3 +29,14 @@ export interface IApi {
     get<T extends object>(uri: string): Promise<T>;
     post<T extends object>(uri: string, data: object, method?: ApiPostMethods): Promise<T>;
 }
+
+// Новые типы для API
+export interface IApiResponse<T> {
+  total: number;
+  items: T[];
+}
+
+export interface IOrderResult {
+  id: string;
+  total: number;
+}

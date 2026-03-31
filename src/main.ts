@@ -3,6 +3,9 @@ import { Catalog } from './components/models/Catalog';
 import { Basket } from './components/models/Basket';
 import { Order } from './components/models/Order';
 import { apiProducts } from './utils/data';
+import { ShopApi } from './services/ShopApi';
+import { Api } from './components/base/Api';
+import { API_URL } from './utils/constants';
 
 console.log('=== ТЕСТИРОВАНИЕ МОДЕЛЕЙ ДАННЫХ ===\n');
 
@@ -117,4 +120,44 @@ console.log('  - Данные заказа после очистки:');
 console.log('    ', order.getOrderData());
 console.log('');
 
-console.log('=== ВСЕ ТЕСТЫ ПРОЙДЕНЫ УСПЕШНО ===');
+console.log('\n=== ПОДКЛЮЧЕНИЕ К СЕРВЕРУ И ЗАГРУЗКА ТОВАРОВ ===');
+
+// Создаём экземпляр API с использованием константы API_URL
+const apiInstance = new Api(API_URL);
+const shopApi = new ShopApi(apiInstance);
+
+console.log('1. ЗАПРОС ТОВАРОВ С СЕРВЕРА...');
+shopApi.getLotList()
+  .then(products => {
+    console.log(`  - Успешно получено ${products.length} товаров с сервера`);
+
+    // Очищаем предыдущий тестовый каталог (заполненный из apiProducts)
+    catalog.setItems([]);
+
+    // Сохраняем товары, полученные с сервера, в модель каталога
+    catalog.setItems(products);
+
+    // Выводим сохранённый каталог в консоль для проверки
+    console.log('  - Каталог обновлён данными с сервера:');
+    console.log('    Всего товаров в каталоге:', catalog.items.length);
+
+    // Показываем первые 3 товара для наглядности
+    console.log('    Первые 3 товара:');
+    catalog.items.slice(0, 3).forEach(product => {
+      console.log(`      - ${product.title} (ID: ${product.id}, цена: ${product.price ?? 'бесценен'})`);
+    });
+
+    // Дополнительно проверяем, что товары с ценой null не добавляются в корзину
+    console.log('\n  - Проверка добавления товаров с ценой null:');
+    const pricelessProduct = catalog.getProduct('b06cde61-912f-4663-9751-09956c0eed67'); // Мамка-таймер
+    if (pricelessProduct) {
+      const addResult = basket.add(pricelessProduct);
+      console.log(`    Попытка добавить "Мамка-таймер": ${addResult ? 'Успешно' : 'Не добавлен (цена null)'}`);
+    }
+  })
+  .catch(error => {
+    console.error('  - Ошибка при получении товаров с сервера:', error);
+    console.warn('  - Продолжаем работу с тестовыми данными из apiProducts');
+  });
+
+console.log('\n=== ВСЕ ТЕСТЫ И ПРОВЕРКИ ЗАВЕРШЕНЫ ===');
