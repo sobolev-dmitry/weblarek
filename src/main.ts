@@ -3,7 +3,7 @@ import { Catalog } from './components/models/Catalog';
 import { Basket } from './components/models/Basket';
 import { Order } from './components/models/Order';
 import { apiProducts } from './utils/data';
-import { ShopApi } from './services/ShopApi';
+import { ShopApi } from './components/models/ShopApi';
 import { Api } from './components/base/Api';
 import { API_URL } from './utils/constants';
 
