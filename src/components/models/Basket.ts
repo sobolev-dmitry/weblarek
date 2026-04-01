@@ -3,13 +3,8 @@ import { IProduct } from '../../types';
 export class Basket {
   private items: IProduct[] = [];
 
-  add(item: IProduct): boolean {
-    // Проверяем, что товара ещё нет в корзине и у него есть цена
-    if (!this.hasItem(item.id) && item.price !== null) {
-      this.items.push({ ...item });
-      return true; // Успешно добавлен
-    }
-    return false; // Не добавлен (уже есть или нет цены)
+  add(item: IProduct): void {
+    this.items.push({ ...item });
   }
 
   remove(id: string): void {

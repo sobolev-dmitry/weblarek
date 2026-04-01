@@ -14,7 +14,7 @@ export interface IBuyer {
   phone: string;
 }
 
-export type PaymentMethod = 'card' | 'cash';
+export type PaymentMethod = 'card' | 'cash' | '';
 
 export interface IOrder extends IBuyer {
   total: number;

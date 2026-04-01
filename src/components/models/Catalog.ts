@@ -5,22 +5,22 @@ export class Catalog {
   private _preview: IProduct | null = null;
 
   setItems(items: IProduct[]): void {
-    this._items = [...items]; // Создаём копию массива для предотвращения внешних изменений
+    this._items = [...items];
   }
 
   get items(): IProduct[] {
-    return [...this._items]; // Возвращаем копию массива
+    return [...this._items];
   }
 
   getProduct(id: string): IProduct | undefined {
     return this._items.find(item => item.id === id);
   }
 
-  set preview(item: IProduct | null) {
-    this._preview = item ? { ...item } : null; // Создаём копию объекта
+  set preview(item: IProduct) {
+    this._preview = { ...item };
   }
 
   get preview(): IProduct | null {
-    return this._preview ? { ...this._preview } : null; // Возвращаем копию объекта
+    return this._preview ? { ...this._preview } : null;
   }
 }
