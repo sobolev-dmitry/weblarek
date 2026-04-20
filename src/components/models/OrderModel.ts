@@ -1,6 +1,7 @@
 import { IBuyer, ValidationErr } from '../../types';
+import { IEvents } from '../base/Events';
 
-export class Order {
+export class OrderModel {
   private order: IBuyer = {
     payment: '',
     address: '',
@@ -8,24 +9,28 @@ export class Order {
     phone: ''
   };
 
+  constructor(protected events: IEvents) {}
+
   setField(field: keyof IBuyer, value: string): void {
     (this.order[field] as string) = value;
+    const errors = this.validateOrder();
+    this.events.emit('validationErr:change', errors);
   }
 
   validateOrder(): ValidationErr {
     const errors: ValidationErr = {};
 
     if (!this.order.address.trim()) {
-      errors.address = 'Адрес доставки обязателен для заполнения';
+      errors.address = 'Необходимо указать адрес';
     }
     if (!this.order.email.trim()) {
-      errors.email = 'Введите корректный адрес электронной почты';
+      errors.email = 'Необходимо указать адрес электронной почты';
     }
     if (!this.order.phone.trim()) {
-      errors.phone = 'Номер телефона обязателен для заполнения';
+      errors.phone = 'Необходимо указать номер телефона';
     }
     if (!this.order.payment.trim()) {
-      errors.payment = 'Способ оплаты обязателен для выбора';
+      errors.payment = 'Необходимо выбрать способ оплаты';
     }
 
     return errors;
@@ -42,5 +47,6 @@ export class Order {
       email: '',
       phone: ''
     };
+    this.events.emit('validationErr:change', {});
   }
 }

@@ -1,18 +1,24 @@
 import { IProduct } from '../../types';
+import { IEvents } from '../base/Events';
 
-export class Basket {
+export class BasketModel {
   private items: IProduct[] = [];
+
+  constructor(protected events: IEvents) {}
 
   add(item: IProduct): void {
     this.items.push({ ...item });
+    this.events.emit('basket:changed');
   }
 
   remove(id: string): void {
     this.items = this.items.filter(item => item.id !== id);
+    this.events.emit('basket:changed');
   }
 
   clear(): void {
     this.items = [];
+    this.events.emit('basket:changed');
   }
 
   getItems(): IProduct[] {
