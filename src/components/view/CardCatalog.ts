@@ -1,7 +1,6 @@
 import { Card, ICardActions } from '../view/Card';
 import { ensureElement } from '../../utils/utils';
 
-
 /**
  * Компонент карточки товара для каталога с изображением и категорией
  */
@@ -16,7 +15,6 @@ export class CardCatalog extends Card {
     дополнительное: 'card__category_additional',
     кнопка: 'card__category_button',
   };
-
 
   constructor(container: HTMLElement, actions?: ICardActions) {
     super(container, actions);

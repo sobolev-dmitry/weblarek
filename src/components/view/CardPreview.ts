@@ -52,12 +52,4 @@ export class CardPreview extends CardCatalog {
       this.setDisabled(this._button, false);
     }
   }
-
-  /**
-   * Получает текущее состояние доступности товара
-   * @returns true, если товар доступен (цена указана), false — если недоступен
-   */
-  get isAvailable(): boolean {
-    return this.price !== null;
-  }
 }

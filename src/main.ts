@@ -32,7 +32,6 @@ class Application {
   private header = new Header(document.querySelector('.header')!, this.events);
   private gallery = new Gallery(document.querySelector('.gallery')!);
   private modal = new Modal(document.querySelector('#modal-container')!, this.events);
-  private pageWrapper = document.querySelector('.page__wrapper')!;
 
   // Шаблоны
   private cardCatalogTemplate = document.querySelector('#card-catalog') as HTMLTemplateElement;
@@ -47,7 +46,10 @@ class Application {
   private views = {
     basket: new Basket(cloneTemplate(this.basketTemplate), this.events),
     order: new Order(cloneTemplate(this.orderTemplate), this.events),
-    contacts: new Contacts(cloneTemplate(this.contactsTemplate), this.events)
+    contacts: new Contacts(cloneTemplate(this.contactsTemplate), this.events),
+    success: new Success(cloneTemplate(this.successTemplate), {
+      onClick: () => this.modal.close()
+    })
   };
 
   private preview = new CardPreview(cloneTemplate(this.cardPreviewTemplate), {
@@ -70,9 +72,9 @@ class Application {
       });
     });
 
-    // Выбор товара
+    // Выбор товара — используем метод модели getProduct
     this.events.on('card:select', (data: { id: string }) => {
-      const item = this.catalog.items.find((i) => i.id === data.id);
+      const item = this.catalog.getProduct(data.id);
       if (item) {
         this.catalog.preview = item;
       }
@@ -131,46 +133,55 @@ class Application {
       this.basket.remove(data.id);
     });
 
-    // Открыть форму заказа
-    this.events.on('order:open', () => {
-      this.modal.render({
-        content: this.views.order.render({
-          address: '',
-          payment: '',
-          valid: false,
-          errors: ''
-        })
-      });
-    });
+    
+// Открыть форму заказа
+this.events.on('order:open', () => {
+  const orderData = this.order.getOrderData();
+  const errors = this.order.validateOrder();
+  const showErrors = (orderData.address !== '' && errors.address) || (orderData.payment !== '' && errors.payment);
 
-    // Обработка ошибок валидации
-    this.events.on('validationErr:change', (errors: Partial<IBuyer>) => {
-      const { payment, address, email, phone } = errors;
-      this.views.order.valid = !payment && !address;
-      this.views.order.errors = [payment, address].filter(Boolean).join('; ');
-      this.views.contacts.valid = !email && !phone;
-      this.views.contacts.errors = [email, phone].filter(Boolean).join('; ');
-    });
+  this.modal.render({
+    content: this.views.order.render({
+      address: orderData.address,
+      payment: orderData.payment,
+      valid: !errors.address && !errors.payment,
+      errors: showErrors ? [errors.address, errors.payment].filter(Boolean).join('; ') : ''
+    })
+  });
+});
 
-    // Изменение полей формы
-    this.events.on(/^order\..*:change|^contacts\..*:change/, (data: { field: keyof IBuyer; value: string }) => {
-      this.order.setField(data.field, data.value);
-      if (data.field === 'payment') this.views.order.payment = data.value;
-    });
+// Обработка ошибок валидации
+this.events.on('validationErr:change', (errors: Partial<IBuyer>) => {
+  const { payment, address, email, phone } = errors;
+  this.views.order.valid = !payment && !address;
+  this.views.order.errors = [payment, address].filter(Boolean).join('; ');
+  this.views.contacts.valid = !email && !phone;
+  this.views.contacts.errors = [email, phone].filter(Boolean).join('; ');
+});
 
-    // Перейти к контактам
-    this.events.on('order:submit', () => {
-      this.modal.render({
-        content: this.views.contacts.render({
-          email: '',
-          phone: '',
-          valid: false,
-          errors: ''
-        })
-      });
-    });
+// Изменение полей формы
+this.events.on(/^order\..*:change|^contacts\..*:change/, (data: { field: keyof IBuyer; value: string }) => {
+  this.order.setField(data.field, data.value);
+  if (data.field === 'payment') this.views.order.payment = data.value;
+});
 
-    // Отправить заказ
+// Перейти к контактам
+this.events.on('order:submit', () => {
+  const orderData = this.order.getOrderData();
+  const errors = this.order.validateOrder();
+  const showErrors = (orderData.email !== '' && errors.email) || (orderData.phone !== '' && errors.phone);
+
+  this.modal.render({
+    content: this.views.contacts.render({
+      email: orderData.email,
+      phone: orderData.phone,
+      valid: !errors.email && !errors.phone,
+      errors: showErrors ? [errors.email, errors.phone].filter(Boolean).join('; ') : ''
+    })
+  });
+});
+
+        // Отправить заказ
     this.events.on('contacts:submit', () => {
       const orderData = {
         ...this.order.getOrderData(),
@@ -181,25 +192,18 @@ class Application {
       this.api
         .orderLots(orderData)
         .then((result) => {
-          const successView = new Success(cloneTemplate(this.successTemplate), {
-            onClick: () => this.modal.close()
-          });
           this.modal.render({
-            content: successView.render({ total: result.total })
+            content: this.views.success.render({ total: result.total })
           });
           this.basket.clear();
           this.order.clearOrder();
         })
         .catch(console.error);
     });
-
-    // Управление модальными окнами
-    this.events.on('modal:open', () => this.pageWrapper.classList.add('page__wrapper_locked'));
-    this.events.on('modal:close', () => this.pageWrapper.classList.remove('page__wrapper_locked'));
   }
 
   // Загрузка товаров с сервера
-    private loadProducts(): void {
+  private loadProducts(): void {
     this.api
       .getLotList()
       .then((items) => this.catalog.setItems(items))
