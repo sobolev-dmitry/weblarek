@@ -13,8 +13,7 @@ export class OrderModel {
 
   setField(field: keyof IBuyer, value: string): void {
     (this.order[field] as string) = value;
-    const errors = this.validateOrder();
-    this.events.emit('validationErr:change', errors);
+    this.events.emit('order:changed');
   }
 
   validateOrder(): ValidationErr {
@@ -47,6 +46,6 @@ export class OrderModel {
       email: '',
       phone: ''
     };
-    this.events.emit('validationErr:change', {});
+    this.events.emit('order:changed');
   }
 }
